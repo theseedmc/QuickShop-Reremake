@@ -96,7 +96,6 @@ public class ShopLoader {
                     continue;
                 }
                 ShopDatabaseInfo data = new ShopDatabaseInfo(origin);
-
                 Shop shop = new ContainerShop(data.getLocation(), data.getPrice(), data.getItem(), data.getModerators(), data
                         .isUnlimited(), data
                         .getType());

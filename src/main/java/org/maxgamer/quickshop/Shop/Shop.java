@@ -20,14 +20,6 @@ public interface Shop {
     void add(ItemStack paramItemStack, int paramInt);
 
     /**
-     * Add new staff to the moderators
-     *
-     * @param player New staff
-     * @return Success
-     */
-    boolean addStaff(UUID player);
-
-    /**
      * Execute buy action for player with x items.
      *
      * @param paramPlayer Target player
@@ -41,24 +33,12 @@ public interface Shop {
     void checkDisplay();
 
     /**
-     * Empty moderators team.
-     */
-    void clearStaffs();
-
-    /**
      * Clone new shop object.
      * Not a deep clone.
      *
      * @return New shop object
      */
     Shop clone();
-
-    /**
-     * Remove a staff from moderators
-     * @param player Staff
-     * @return Success
-     */
-    boolean delStaff(UUID player);
 
     /**
      * Delete shop from ram, and database.
