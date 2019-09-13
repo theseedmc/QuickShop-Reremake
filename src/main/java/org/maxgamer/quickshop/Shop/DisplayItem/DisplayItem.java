@@ -1,4 +1,4 @@
-package org.maxgamer.quickshop.Shop;
+package org.maxgamer.quickshop.Shop.DisplayItem;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
@@ -9,6 +9,8 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.maxgamer.quickshop.QuickShop;
+import org.maxgamer.quickshop.Shop.Shop;
+import org.maxgamer.quickshop.Shop.ShopProtectionFlag;
 import org.maxgamer.quickshop.Util.Util;
 
 import java.util.ArrayList;

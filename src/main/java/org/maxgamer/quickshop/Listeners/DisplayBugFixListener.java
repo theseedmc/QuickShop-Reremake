@@ -6,8 +6,8 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockCanBuildEvent;
 import org.maxgamer.quickshop.QuickShop;
-import org.maxgamer.quickshop.Shop.DisplayItem;
-import org.maxgamer.quickshop.Shop.DisplayType;
+import org.maxgamer.quickshop.Shop.DisplayItem.DisplayItem;
+import org.maxgamer.quickshop.Shop.DisplayItem.DisplayType;
 import org.maxgamer.quickshop.Util.Util;
 
 import java.util.Collection;

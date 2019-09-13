@@ -1,4 +1,4 @@
-package org.maxgamer.quickshop.Shop;
+package org.maxgamer.quickshop.Shop.DisplayItem;
 
 import lombok.ToString;
 import org.bukkit.Bukkit;
@@ -15,6 +15,7 @@ import org.jetbrains.annotations.NotNull;
 import org.maxgamer.quickshop.Event.ShopDisplayItemDespawnEvent;
 import org.maxgamer.quickshop.Event.ShopDisplayItemSpawnEvent;
 import org.maxgamer.quickshop.QuickShop;
+import org.maxgamer.quickshop.Shop.Shop;
 import org.maxgamer.quickshop.Util.Util;
 
 @ToString
@@ -30,7 +31,7 @@ public class ArmorStandDisplayItem implements DisplayItem {
     private QuickShop plugin = QuickShop.instance;
     private Shop shop;
 
-    ArmorStandDisplayItem(@NotNull Shop shop) {
+    public ArmorStandDisplayItem(@NotNull Shop shop) {
         this.shop = shop;
         this.originalItemStack = shop.getItem().clone();
         this.originalItemStack.setAmount(1);
