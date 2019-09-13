@@ -1,13 +1,6 @@
 package org.maxgamer.quickshop;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.sql.SQLException;
-import java.util.*;
-import java.util.Map.Entry;
-
-import lombok.*;
+import lombok.Getter;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
@@ -15,7 +8,7 @@ import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
-import org.jetbrains.annotations.*;
+import org.jetbrains.annotations.NotNull;
 import org.maxgamer.quickshop.Command.CommandManager;
 import org.maxgamer.quickshop.Database.*;
 import org.maxgamer.quickshop.Database.Database.ConnectionException;
@@ -27,10 +20,14 @@ import org.maxgamer.quickshop.Shop.ShopLoader;
 import org.maxgamer.quickshop.Shop.ShopManager;
 import org.maxgamer.quickshop.Util.Timer;
 import org.maxgamer.quickshop.Util.*;
-import org.maxgamer.quickshop.Watcher.DisplayWatcher;
-import org.maxgamer.quickshop.Watcher.LogWatcher;
-import org.maxgamer.quickshop.Watcher.SyncTaskWatcher;
-import org.maxgamer.quickshop.Watcher.UpdateWatcher;
+import org.maxgamer.quickshop.Watcher.*;
+
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.sql.SQLException;
+import java.util.*;
+import java.util.Map.Entry;
 
 //import com.griefcraft.lwc.LWCPlugin;
 @Getter
@@ -136,6 +133,7 @@ public class QuickShop extends JavaPlugin {
     private ShopManager shopManager;
     private ShopProtectionListener shopProtectListener;
     private SyncTaskWatcher syncTaskWatcher;
+    private ShopVaildWatcher shopVaildWatcher;
     /**
      * Use SpoutPlugin to get item / block names
      */
@@ -411,10 +409,7 @@ public class QuickShop extends JavaPlugin {
 
         getLogger().info("Registering Listeners...");
         // Register events
-        if (getConfig().getBoolean("shop.lock")) {
-            LockListener lockListener = new LockListener(this);
-            Bukkit.getServer().getPluginManager().registerEvents(lockListener, this);
-        }
+
         blockListener = new BlockListener(this);
         playerListener = new PlayerListener(this);
         worldListener = new WorldListener(this);
@@ -426,19 +421,23 @@ public class QuickShop extends JavaPlugin {
         shopProtectListener = new ShopProtectionListener(this);
         displayWatcher = new DisplayWatcher(this);
         syncTaskWatcher = new SyncTaskWatcher(this);
-        Bukkit.getServer().getPluginManager().registerEvents(blockListener, this);
-        Bukkit.getServer().getPluginManager().registerEvents(playerListener, this);
-        Bukkit.getServer().getPluginManager().registerEvents(chatListener, this);
-        Bukkit.getServer().getPluginManager().registerEvents(inventoryListener, this);
-        Bukkit.getServer().getPluginManager().registerEvents(chunkListener, this);
-        Bukkit.getServer().getPluginManager().registerEvents(worldListener, this);
-        Bukkit.getServer().getPluginManager().registerEvents(customInventoryListener, this);
-        Bukkit.getServer().getPluginManager().registerEvents(displayBugFixListener, this);
-        Bukkit.getServer().getPluginManager().registerEvents(shopProtectListener, this);
-        if (Bukkit.getPluginManager().getPlugin("ClearLag") != null) {
-            Bukkit.getServer().getPluginManager().registerEvents(new ClearLaggListener(), this);
+        shopVaildWatcher = new ShopVaildWatcher(this);
+        lockListener = new LockListener(this);
+        Bukkit.getPluginManager().registerEvents(blockListener, this);
+        Bukkit.getPluginManager().registerEvents(playerListener, this);
+        Bukkit.getPluginManager().registerEvents(chatListener, this);
+        Bukkit.getPluginManager().registerEvents(inventoryListener, this);
+        Bukkit.getPluginManager().registerEvents(chunkListener, this);
+        Bukkit.getPluginManager().registerEvents(worldListener, this);
+        Bukkit.getPluginManager().registerEvents(customInventoryListener, this);
+        Bukkit.getPluginManager().registerEvents(displayBugFixListener, this);
+        Bukkit.getPluginManager().registerEvents(shopProtectListener, this);
+        if(getConfig().getBoolean("shop.lock")){
+            Bukkit.getPluginManager().registerEvents(lockListener,this);
         }
-
+        if (Bukkit.getPluginManager().getPlugin("ClearLag") != null) {
+            Bukkit.getPluginManager().registerEvents(new ClearLaggListener(), this);
+        }
         getLogger().info("Cleaning MsgUtils...");
         MsgUtil.loadTransactionMessages();
         MsgUtil.clean();
@@ -449,12 +448,15 @@ public class QuickShop extends JavaPlugin {
         getLogger().info("QuickShop Loaded! " + enableTimer.endTimer() + " ms.");
         /* Delay the Ecoonomy system load, give a chance to let economy system regiser. */
         /* And we have a listener to listen the ServiceRegisterEvent :) */
+        Util.debugLog("Loading economy system...");
         new BukkitRunnable() {
             @Override
             public void run() {
                 loadEcon();
             }
         }.runTaskLater(this, 1);
+        Util.debugLog("Registering shop watcher...");
+        shopVaildWatcher.runTaskTimer(this,0,20*60);
     }
 
     /**
@@ -902,7 +904,12 @@ public class QuickShop extends JavaPlugin {
             getConfig().set("config-version", 46);
             selectedVersion = 46;
         }
-
+        if (selectedVersion == 46) {
+            getConfig().set("shop.use-protection-checking-filter", true);
+            getConfig().set("shop.max-shops-checks-in-once",100);
+            getConfig().set("config-version", 47);
+            selectedVersion = 47;
+        }
         saveConfig();
         reloadConfig();
         File file = new File(getDataFolder(), "example.config.yml");

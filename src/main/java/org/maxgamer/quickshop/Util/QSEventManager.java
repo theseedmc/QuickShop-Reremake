@@ -23,7 +23,7 @@ import java.util.logging.Level;
  * The EventManager for QuickShop protection caller.
  */
 public class QSEventManager {
-    private HashMap<String, Set<PluginEventFilterContainer>> containerSet = new HashMap<>();
+    private HashMap<String, Set<PluginEventFilterContainer>> filterSet = new HashMap<>();
     private QuickShop plugin;
 
     public QSEventManager(@NotNull QuickShop plugin) {
@@ -50,13 +50,13 @@ public class QSEventManager {
                 plugin.getLogger().warning("Event filter: " + filterString + " plugin name invalid.");
                 continue;
             }
-            containerSet.putIfAbsent(cPlugin, new HashSet<>());
-            Set<PluginEventFilterContainer> containers = containerSet.get(cPlugin);
+            filterSet.putIfAbsent(cPlugin, new HashSet<>());
+            Set<PluginEventFilterContainer> containers = filterSet.get(cPlugin);
             boolean result = containers.add(new PluginEventFilterContainer(cListener, cEvent));
             if (!result) {
                 plugin.getLogger().warning("Event filter: " + filterString + " duplicated.");
             } else {
-                containerSet.put(cPlugin, containers);
+                filterSet.put(cPlugin, containers);
             }
         }
     }
@@ -74,41 +74,48 @@ public class QSEventManager {
                 Util.debugLog("Skipping " + registration.getPlugin().getName() + " cause plugin is unloaded.");
                 continue;
             }
-            Set<PluginEventFilterContainer> containers = containerSet.get(registration.getPlugin().getName());
+            Set<PluginEventFilterContainer> containers = filterSet.get(registration.getPlugin().getName());
             if (containers == null) {
-                continue;
-            }
-            for (PluginEventFilterContainer container : containers) {
-                if (container.getListener().equals(registration.getListener().getClass().getName())) {
-                    if (container.getEvent().equals(event.getClass().getName())) {
-                        Util.debugLog("Skipping event " + event.getClass().getName() + " calling for plugin " + registration.getPlugin().getName() + "'s listener " + registration.getListener().getClass().getName());
-                        continue;
-                    }
-                }
-                Util.debugLog("Calling event " + event.getClass().getName() + " calling for plugin " + registration.getPlugin().getName() + "'s listener " + registration.getListener().getClass().getName());
-                try {
-                    registration.callEvent(event);
-                    if (event instanceof Cancellable) {
-                        if (((Cancellable) event).isCancelled()) {
-                            Util.debugLog("Plugin " + registration.getPlugin() + " cancelled the check event, stop checking.");
-                            return registration.getPlugin();
+                Util.debugLog("Container is null, direct call events...");
+            } else {
+                Util.debugLog("Detected the filter for this plugin, checking...");
+                boolean cancelPluginCalling = false;
+                for (PluginEventFilterContainer disabledContainer : containers) {
+                    if (disabledContainer.getListener().equals(registration.getListener().getClass().getName())) {
+                        if (disabledContainer.getEvent().equals(event.getClass().getName())) {
+                            Util.debugLog("Skipping event " + event.getClass().getName() + " calling for plugin " + registration.getPlugin().getName() + "'s listener " + registration.getListener().getClass().getName());
+                            cancelPluginCalling = true;
+                            break;
                         }
                     }
-                } catch (AuthorNagException ex) {
-                    Plugin plugin = registration.getPlugin();
-                    if (plugin.isNaggable()) {
-                        plugin.setNaggable(false);
-                        Bukkit.getServer().getLogger().log(Level.SEVERE, String.format(
-                                "Nag author(s): '%s' of '%s' about the following: %s",
-                                plugin.getDescription().getAuthors(),
-                                plugin.getDescription().getFullName(),
-                                ex.getMessage()
-                        ));
-                    }
-                } catch (Throwable ex) {
-                    Bukkit.getServer().getLogger().log(Level.SEVERE, "Could not pass event " + event.getEventName() + " to " + registration.getPlugin().getDescription().getFullName(), ex);
-                    plugin.getLogger().info("A plugin throw an error when checking protection permission, you should check them, DO NOT REPORT THIS TO QUICKSHOP.");
                 }
+                if (cancelPluginCalling) {
+                    continue; //Skip this listener calling+
+                }
+            }
+            Util.debugLog("Calling event " + event.getClass().getName() + " calling for plugin " + registration.getPlugin().getName() + "'s listener " + registration.getListener().getClass().getName());
+            try {
+                registration.callEvent(event);
+                if (event instanceof Cancellable) {
+                    if (((Cancellable) event).isCancelled()) {
+                        Util.debugLog("Plugin " + registration.getPlugin() + " cancelled the check event, stop checking.");
+                        return registration.getPlugin();
+                    }
+                }
+            } catch (AuthorNagException ex) {
+                Plugin plugin = registration.getPlugin();
+                if (plugin.isNaggable()) {
+                    plugin.setNaggable(false);
+                    Bukkit.getServer().getLogger().log(Level.SEVERE, String.format(
+                            "Nag author(s): '%s' of '%s' about the following: %s",
+                            plugin.getDescription().getAuthors(),
+                            plugin.getDescription().getFullName(),
+                            ex.getMessage()
+                    ));
+                }
+            } catch (Throwable ex) {
+                Bukkit.getServer().getLogger().log(Level.SEVERE, "Could not pass event " + event.getEventName() + " to " + registration.getPlugin().getDescription().getFullName(), ex);
+                plugin.getLogger().info("A plugin throw an error when checking protection permission, you should check them, DO NOT REPORT THIS TO QUICKSHOP.");
             }
         }
         return null;

@@ -1,17 +1,17 @@
 package org.maxgamer.quickshop.Database;
 
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
-import java.util.Queue;
-import java.util.concurrent.LinkedBlockingQueue;
-
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
-import org.jetbrains.annotations.*;
+import org.jetbrains.annotations.NotNull;
 import org.maxgamer.quickshop.QuickShop;
 import org.maxgamer.quickshop.Util.Timer;
 import org.maxgamer.quickshop.Util.Util;
 import org.maxgamer.quickshop.Util.WarningSender;
+
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.util.Queue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 /**
  * Queued database manager.
@@ -45,7 +45,7 @@ public class DatabaseManager {
             public void run() {
                 plugin.getDatabaseManager().runTask();
             }
-        }.runTaskTimer(plugin, 1, 200);
+        }.runTaskTimerAsynchronously(plugin, 1, 200);
     }
 
     /**
@@ -99,9 +99,9 @@ public class DatabaseManager {
                 sqle.printStackTrace();
             }
             long tookTime = timer.endTimer();
-            if (tookTime > 1500) {
+            if (tookTime > 5000) {
                 warningSender
-                        .sendWarn("Database performance warning: It took too long time (" + tookTime + "ms) to execute the task, change to a better MySQL server or switch to a local SQLite database!");
+                        .sendWarn("Database performance warning: It took too long time (" + tookTime + "ms) to execute the task, it may cause the network connection with MySQL server or just MySQL server too slow, change to a better MySQL server or switch to a local SQLite database!");
             }
         }
     }

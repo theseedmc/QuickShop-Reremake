@@ -6,9 +6,8 @@ import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.block.BlockBreakEvent;
-import org.bukkit.event.block.BlockEvent;
 import org.bukkit.plugin.Plugin;
-import org.jetbrains.annotations.*;
+import org.jetbrains.annotations.NotNull;
 import org.maxgamer.quickshop.Event.ProtectionCheckStatus;
 import org.maxgamer.quickshop.Event.ShopProtectionCheckEvent;
 import org.maxgamer.quickshop.Listeners.ListenerHelper;
@@ -55,7 +54,12 @@ public class PermissionChecker {
         //Bukkit.getPluginManager().callEvent(beMainHand);
         beMainHand.setDropItems(false);
         beMainHand.setExpToDrop(-1);
-        Plugin cancelPlugin = plugin.getQsEventManager().fireEvent(beMainHand);
+        Plugin cancelPlugin = null;
+        if(plugin.getConfig().getBoolean("shop.use-protection-checking-filter")){
+            cancelPlugin = plugin.getQsEventManager().fireEvent(beMainHand);
+        }else{
+            Bukkit.getPluginManager().callEvent(beMainHand);
+        }
         //Use our custom event caller.
         ListenerHelper.enableEvent(beMainHand.getClass());
         //Call for event for protection check end
@@ -69,8 +73,6 @@ public class PermissionChecker {
 //            }
             if(cancelPlugin != null) {
                 Util.debugLog("Plugin " + cancelPlugin.getName() + " cancelled this build create action.");
-            }else{
-                Util.debugLog("Internal server error.");
             }
         }
 
