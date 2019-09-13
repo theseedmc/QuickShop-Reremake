@@ -1,5 +1,7 @@
 package org.maxgamer.quickshop.Shop;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
 import com.lishid.openinv.OpenInv;
 import lombok.EqualsAndHashCode;
 import org.bukkit.Bukkit;
@@ -40,6 +42,7 @@ public class ContainerShop implements Shop {
     private double price;
     private ShopType shopType;
     private boolean unlimited;
+    private ShopExtraData extra;
 
     private ContainerShop(@NotNull ContainerShop s) {
         this.displayItem = s.displayItem;
@@ -51,6 +54,7 @@ public class ContainerShop implements Shop {
         this.moderator = s.moderator;
         this.price = s.price;
         this.isLoaded = s.isLoaded;
+        this.extra = s.extra;
     }
 
     /**
@@ -64,7 +68,7 @@ public class ContainerShop implements Shop {
      * @param type      The shop type
      * @param unlimited The unlimited
      */
-    public ContainerShop(@NotNull Location loc, double price, @NotNull ItemStack item, @NotNull ShopModerator moderator, boolean unlimited, @NotNull ShopType type) {
+    public ContainerShop(@NotNull Location loc, double price, @NotNull ItemStack item, @NotNull ShopModerator moderator, boolean unlimited, @NotNull ShopType type, @Nullable ShopExtraData extra) {
         this.loc = loc;
         this.price = price;
         this.moderator = moderator;
@@ -73,6 +77,7 @@ public class ContainerShop implements Shop {
         this.item.setAmount(1);
         this.shopType = type;
         this.unlimited = unlimited;
+        this.extra = extra;
 
         if (plugin.isDisplay()) {
             switch (DisplayItem.getNowUsing()) {
@@ -203,12 +208,22 @@ public class ContainerShop implements Shop {
         String world = this.getLocation().getWorld().getName();
         int unlimited = this.isUnlimited() ? 1 : 0;
         try {
-            plugin.getDatabaseHelper().updateShop(ShopModerator.serialize(this.moderator.clone()), this
-                    .getItem(), unlimited, shopType.toID(), this.getPrice(), x, y, z, world);
+            plugin.getDatabaseHelper().updateShop(this.getOwner().toString(),world,x,y,x,serialize(this),ShopExtraData.serialize(getExtraData()));
         } catch (Exception e) {
             e.printStackTrace();
             plugin.getLogger().log(Level.WARNING, "Could not update a shop in the database! Changes will revert after a reboot!");
         }
+    }
+
+    public static ContainerShop deserialize(@NotNull String serilized) throws JsonSyntaxException {
+        //Use Gson deserialize data
+        Gson gson = new Gson();
+        return gson.fromJson(serilized, ContainerShop.class);
+    }
+
+    public static String serialize(@NotNull ContainerShop containerShop) {
+        Gson gson = new Gson();
+        return gson.toJson(containerShop); //Use Gson serialize this class
     }
 
     /**
@@ -235,7 +250,6 @@ public class ContainerShop implements Shop {
         return item;
     }
 
-    @Override
     public boolean addStaff(@NotNull UUID player) {
         boolean result = this.moderator.addStaff(player);
         update();
@@ -306,7 +320,6 @@ public class ContainerShop implements Shop {
         }
     }
 
-    @Override
     public boolean delStaff(@NotNull UUID player) {
         boolean result = this.moderator.delStaff(player);
         update();
@@ -401,7 +414,6 @@ public class ContainerShop implements Shop {
         }
     }
 
-    @Override
     public void clearStaffs() {
         this.moderator.clearStaffs();
         Bukkit.getPluginManager().callEvent(new ShopModeratorChangedEvent(this, this.moderator));
@@ -531,6 +543,14 @@ public class ContainerShop implements Shop {
         }
         Shop shop = plugin.getShopManager().getShop(c.getLocation());
         return shop == null ? null : (ContainerShop) shop;
+    }
+
+    /**
+     * Get the shop extra data
+     * @return Shop extra data
+     */
+    public ShopExtraData getExtraData() {
+        return extra;
     }
 
     /**

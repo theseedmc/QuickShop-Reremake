@@ -1,5 +1,7 @@
 package org.maxgamer.quickshop.Shop;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -69,5 +71,16 @@ public class ShopExtraData {
             return null;
         }
         return dataInNamespace.get(key);
+    }
+
+    public static ShopExtraData deserialize(@NotNull String serilized) throws JsonSyntaxException {
+        //Use Gson deserialize data
+        Gson gson = new Gson();
+        return gson.fromJson(serilized, ShopExtraData.class);
+    }
+
+    public static String serialize(@NotNull ShopExtraData shopExtraData) {
+        Gson gson = new Gson();
+        return gson.toJson(shopExtraData); //Use Gson serialize this class
     }
 }

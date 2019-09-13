@@ -1,10 +1,13 @@
 package org.maxgamer.quickshop.Shop;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.block.Sign;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -253,6 +256,4 @@ public interface Shop {
      * @return status
      */
     boolean isValid();
-
-
 }
