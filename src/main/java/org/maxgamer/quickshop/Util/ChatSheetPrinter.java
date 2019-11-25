@@ -18,7 +18,7 @@ import org.jetbrains.annotations.NotNull;
   A utils for print sheet on chat.
  */
 public class ChatSheetPrinter {
-    final ChatColor chatColor = ChatColor.DARK_PURPLE;
+    final ChatColor chatColor = ChatColor.GRAY;
     //StringBuffer buffer = new StringBuffer();
     private CommandSender p;
 
