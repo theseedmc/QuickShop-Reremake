@@ -36,13 +36,11 @@ public class ChatSheetPrinter {
     }
 
     public void printFooter() {
-        p.sendMessage(chatColor + MsgUtil.getMessage("tableformat.full_line", p));
+        p.sendMessage("");
     }
 
     public void printHeader() {
         p.sendMessage("");
-        p.sendMessage("");
-        p.sendMessage(chatColor + MsgUtil.getMessage("tableformat.full_line", p));
     }
 
     public void printLine(@NotNull String text) {
