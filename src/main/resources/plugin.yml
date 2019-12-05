@@ -1,5 +1,5 @@
 name: ${name}
-main: ${package}.${name}
+main: ${package}.QuickShop
 version: ${project.version}
 authors: [BukkitCommonsStudio,Netherfoam, Timtower, KaiNoMood, Ghost_chu, Mgazul, TiaraRinne]
 
